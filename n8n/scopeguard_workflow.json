@@ -1,0 +1,209 @@
+	
+name	"ScopeGuard Sprint Monitor"
+nodes	
+0	
+parameters	
+rule	
+interval	
+0	
+field	"hours"
+hoursInterval	4
+type	"n8n-nodes-base.scheduleTrigger"
+typeVersion	1.3
+position	
+0	0
+1	0
+id	"17057ac5-cebb-465b-ae10-4749b244dc0d"
+name	"Schedule Trigger"
+1	
+parameters	
+url	"https://hifduatxqzifbalssilf.supabase.co/rest/v1/sprints?status=eq.active&select=*,teams(*),stories(*)"
+sendHeaders	true
+headerParameters	
+parameters	
+0	
+name	"apikey"
+value	"sb_publishable_X2YDhhNBq3bpRPaKYTW-LQ_2t1QQrnz"
+1	
+name	"Authorization"
+value	"sb_publishable_X2YDhhNBq3bpRPaKYTW"
+options	{}
+type	"n8n-nodes-base.httpRequest"
+typeVersion	4.4
+position	
+0	208
+1	0
+id	"99a9a7a3-704c-46e7-a863-523d96e6cfd1"
+name	"HTTP Request"
+2	
+parameters	
+jsCode	'const items = [];\n\nfor (const sprint of $input.all()) {\n  const sprintData = sprint.json;\n  \n  const requestBody = {\n    model: "claude-opus-4-5",\n    max_tokens: 1024,\n    system: "You are ScopeGuard, an expert Agile coach and scope creep detection engine for NovaTech Solutions. Analyse sprint data and return only raw JSON, no prose, no markdown, no code fences.",\n    messages: [\n      {\n        role: "user",\n        content: `Analyse this sprint data for scope creep. Flag any story where was_in_original_plan is false, or label is unplanned or critical, or story_points are high and added mid-sprint.\n\nSprint Data: ${JSON.stringify(sprintData)}\n\nReturn exactly this JSON structure:\n{\n  "risk_level": "LOW or MEDIUM or HIGH or CRITICAL",\n  "scope_creep_detected": true or false,\n  "changed_items": [\n    {\n      "story_id": "id here",\n      "title": "title here",\n      "reason": "why flagged",\n      "severity": "LOW or MEDIUM or HIGH"\n    }\n  ],\n  "recommended_action": "one clear action for the PM",\n  "summary": "two sentence summary"\n}`\n      }\n    ]\n  };\n\n  items.push({\n    json: {\n      sprint_id: sprintData.id,\n      team_id: sprintData.team_id,\n      claudeBody: JSON.stringify(requestBody)\n    }\n  });\n}\n\nreturn items;'
+type	"n8n-nodes-base.code"
+typeVersion	2
+position	
+0	416
+1	0
+id	"4ed9b0e3-e4f8-4138-8a39-831ad18af475"
+name	"Prepare Claude Request"
+3	
+parameters	
+method	"POST"
+url	"https://api.anthropic.com/v1/messages"
+sendHeaders	true
+headerParameters	
+parameters	
+0	
+
+1	
+name	"anthropic-version"
+value	"2023-06-01"
+2	
+name	"Content-Type"
+value	"application/json"
+sendBody	true
+specifyBody	"json"
+jsonBody	"={{ $json.claudeBody }}"
+options	{}
+type	"n8n-nodes-base.httpRequest"
+typeVersion	4.4
+position	
+0	624
+1	0
+id	"8b7067e6-53ed-4b49-9ac0-cced2b303360"
+name	"Claude - Scope Creep Analysis"
+4	
+parameters	
+jsCode	`const items = [];\nconst claudeItems = $input.all();\nconst prepareItems = $('Prepare Claude Request').all();\n\nfor (let i = 0; i < claudeItems.length; i++) {\n  const claudeText = claudeItems[i].json.content[0].text;\n  const parsed = JSON.parse(claudeText);\n  const sprintId = prepareItems[i].json.sprint_id;\n  const teamId = prepareItems[i].json.team_id;\n\n  items.push({\n    json: {\n      sprint_id: sprintId,\n      team_id: teamId,\n      alert_type: "scope_creep_detected",\n      severity: parsed.risk_level.toLowerCase(),\n      claude_analysis: JSON.stringify(parsed),\n      risk_score: parsed.risk_level === 'CRITICAL' ? 95 : parsed.risk_level === 'HIGH' ? 75 : parsed.risk_level === 'MEDIUM' ? 45 : 10,\n      recommended_action: parsed.recommended_action,\n      is_acknowledged: false,\n      created_at: new Date().toISOString()\n    }\n  });\n}\n\nreturn items;`
+type	"n8n-nodes-base.code"
+typeVersion	2
+position	
+0	848
+1	0
+id	"c187bbcd-e8c6-4b9b-9e04-fee577ad37ce"
+name	"Parse Claude Response"
+5	
+parameters	
+method	"POST"
+url	"https://hifduatxqzifbalssilf.supabase.co/rest/v1/alerts"
+sendHeaders	true
+headerParameters	
+parameters	
+0	
+name	"apikey"
+value	"sb_publishable_X2YDhhNBq3bpRPaKYTW-LQ_2t1QQrnz"
+1	
+name	"Authorization"
+value	"Bearer sb_publishable_X2YDhhNBq3bpRPaKYTW-LQ_2t1QQrnz"
+2	
+name	"Content-Type"
+value	"application/json"
+3	
+name	"Prefer"
+value	"return=representation"
+sendBody	true
+specifyBody	"json"
+jsonBody	"={{ JSON.stringify($json) }}"
+options	{}
+type	"n8n-nodes-base.httpRequest"
+typeVersion	4.4
+position	
+0	16
+1	192
+id	"b6a8bf98-c1eb-4fe1-8356-2c7826f581aa"
+name	"Supabase - Write Alert"
+6	
+parameters	
+conditions	
+options	
+caseSensitive	true
+leftValue	""
+typeValidation	"strict"
+version	3
+conditions	
+0	
+id	"fb689907-2175-4882-af02-a9a65428b591"
+leftValue	"={{ $json.severity }}"
+rightValue	"critical"
+operator	
+type	"string"
+operation	"equals"
+name	"filter.operator.equals"
+combinator	"and"
+options	{}
+type	"n8n-nodes-base.filter"
+typeVersion	2.3
+position	
+0	224
+1	192
+id	"5021cec6-48ad-4e40-8ecd-f18a796c27a0"
+name	"Filter"
+7	
+parameters	
+jsCode	'const alert = $input.item.json;\n\nconst message = `\n🚨 CRITICAL SCOPE CREEP ALERT TRIGGERED\n=====================================\nSprint: ${alert.sprint_id}\nSeverity: ${alert.severity.toUpperCase()}\nRisk Score: ${alert.risk_score}/100\nAlert Type: ${alert.alert_type}\nRecommended Action: ${alert.recommended_action}\nTimestamp: ${alert.created_at}\n=====================================\nScopeGuard AI — NovaTech Solutions\n`;\n\nconsole.log(message);\n\nreturn {\n  json: {\n    alert_triggered: true,\n    severity: alert.severity,\n    risk_score: alert.risk_score,\n    message: message,\n    dashboard_url: "https://luminous-horse-1f8b1a.netlify.app",\n    timestamp: new Date().toISOString()\n  }\n};'
+type	"n8n-nodes-base.code"
+typeVersion	2
+position	
+0	432
+1	192
+id	"e0828dd9-0143-4960-a28a-6e2495992c99"
+name	"Code in JavaScript"
+pinData	{}
+connections	
+Schedule Trigger	
+main	
+0	
+0	
+node	"HTTP Request"
+type	"main"
+index	0
+HTTP Request	
+main	
+0	
+0	
+node	"Prepare Claude Request"
+type	"main"
+index	0
+Prepare Claude Request	
+main	
+0	
+0	
+node	"Claude - Scope Creep Analysis"
+type	"main"
+index	0
+Claude - Scope Creep Analysis	
+main	
+0	
+0	
+node	"Parse Claude Response"
+type	"main"
+index	0
+Parse Claude Response	
+main	
+0	
+0	
+node	"Supabase - Write Alert"
+type	"main"
+index	0
+Supabase - Write Alert	
+main	
+0	
+0	
+node	"Filter"
+type	"main"
+index	0
+Filter	
+main	
+0	
+0	
+node	"Code in JavaScript"
+type	"main"
+index	0
+active	true
+settings	
+executionOrder	"v1"
+binaryMode	"separate"
+versionId	"ec57b1cc-93ac-425a-bcf9-b6662f34215f"
+meta	
+instanceId	"d4c8fbe183b013be186523fc38c9aae1da22dec47206489fa7af7bd7734a63a5"
+id	"03bHtmGjHx6if9YU"
+tags	[]
