@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ScopeGuard | AI-Powered Scope Creep Detection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "secondary-container": "#dae2fd",
+          "primary-fixed": "#d8e2ff",
+          "on-primary-fixed": "#001a42",
+          "on-tertiary-fixed-variant": "#930013",
+          "error-container": "#ffdad6",
+          "surface-tint": "#005ac2",
+          "on-primary-container": "#fefcff",
+          "outline": "#727785",
+          "surface-container-lowest": "#ffffff",
+          "primary-container": "#2170e4",
+          "on-secondary-fixed-variant": "#3f465c",
+          "on-error": "#ffffff",
+          "surface-container-high": "#e6e8ea",
+          "tertiary-container": "#da3437",
+          "tertiary": "#b61722",
+          "on-surface": "#191c1e",
+          "surface-container": "#eceef0",
+          "on-error-container": "#93000a",
+          "secondary": "#565e74",
+          "on-background": "#191c1e",
+          "surface-container-low": "#f2f4f6",
+          "on-secondary-container": "#5c647a",
+          "error": "#ba1a1a",
+          "surface": "#f7f9fb",
+          "surface-bright": "#f7f9fb",
+          "primary-fixed-dim": "#adc6ff",
+          "inverse-primary": "#adc6ff",
+          "secondary-fixed-dim": "#bec6e0",
+          "on-primary-fixed-variant": "#004395",
+          "outline-variant": "#c2c6d6",
+          "secondary-fixed": "#dae2fd",
+          "surface-container-highest": "#e0e3e5",
+          "surface-dim": "#d8dadc",
+          "on-tertiary-container": "#fffbff",
+          "background": "#f7f9fb",
+          "inverse-surface": "#2d3133",
+          "on-surface-variant": "#424754",
+          "on-primary": "#ffffff",
+          "on-tertiary-fixed": "#410004",
+          "tertiary-fixed-dim": "#ffb3ad",
+          "surface-variant": "#e0e3e5",
+          "primary": "#0058be",
+          "inverse-on-surface": "#eff1f3",
+          "on-tertiary": "#ffffff",
+          "on-secondary": "#ffffff",
+          "on-secondary-fixed": "#131b2e",
+          "tertiary-fixed": "#ffdad7"
+        },
+        borderRadius: {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        fontFamily: {
+          "headline": ["Manrope"],
+          "body": ["Inter"],
+          "label": ["Inter"]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .screen { display: none; }
+  .screen.active { display: flex; }
+  .nav-link { cursor: pointer; }
+</style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+
+<!-- ============================================================ -->
+<!-- SHARED SIDEBAR -->
+<!-- ============================================================ -->
+<div class="flex min-h-screen">
+<nav id="sidebar" class="fixed left-0 top-0 flex flex-col p-4 gap-2 h-full bg-surface-container-low w-64 border-r border-outline-variant/20 z-50">
+  <div class="flex items-center gap-3 px-2 mb-8">
+    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg">
+      <span class="material-symbols-outlined">security</span>
+    </div>
+    <div>
+      <div class="text-lg font-black text-on-surface tracking-tight">ScopeGuard</div>
+      <div class="text-xs font-semibold text-on-secondary-container/70">NovaTech Solutions</div>
+    </div>
+  </div>
+  <div class="flex flex-col gap-1">
+    <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200" onclick="showScreen('dashboard')" id="nav-dashboard">
+      <span class="material-symbols-outlined">dashboard</span>Dashboard
+    </a>
+    <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200" onclick="showScreen('alert')" id="nav-alert">
+      <span class="material-symbols-outlined">notifications</span>Alerts
+    </a>
+    <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200" onclick="showScreen('teams')" id="nav-teams">
+      <span class="material-symbols-outlined">group</span>Teams
+    </a>
+    <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200" onclick="showScreen('settings')" id="nav-settings">
+      <span class="material-symbols-outlined">settings</span>Settings
+    </a>
+  </div>
+  <div class="mt-auto p-2">
+    <div class="w-full py-2 px-3 rounded-lg bg-tertiary/10 border border-tertiary/20 text-center">
+      <div class="text-xs font-bold text-tertiary uppercase tracking-wider">⚠ CRITICAL ALERT</div>
+      <div class="text-xs text-on-surface-variant mt-1">Platform Team · Sprint 14</div>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- MAIN CONTENT AREA -->
+<!-- ============================================================ -->
+<div class="ml-64 flex-1 flex flex-col">
+
+  <!-- TOP NAV -->
+  <header class="flex items-center justify-between px-8 h-16 sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-outline-variant/20">
+    <div class="flex items-center gap-4">
+      <span class="text-lg font-bold tracking-tight text-on-surface" id="page-title">ScopeGuard Dashboard</span>
+      <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-semibold">AI-Powered</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="relative">
+        <span class="absolute inset-y-0 left-3 flex items-center text-outline">
+          <span class="material-symbols-outlined text-sm">search</span>
+        </span>
+        <input class="bg-surface-container-lowest border-none ring-1 ring-outline-variant/30 rounded-full py-1.5 pl-10 pr-4 text-sm w-56 focus:ring-primary focus:ring-2 transition-all" placeholder="Search sprints..." type="text"/>
+      </div>
+      <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="absolute top-1 right-1 w-2 h-2 bg-tertiary rounded-full"></span>
+      </button>
+      <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">V</div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 1: DASHBOARD -->
+  <!-- ============================================================ -->
+  <div id="screen-dashboard" class="screen active flex-col p-8 space-y-10 max-w-7xl w-full">
+
+    <section class="flex justify-between items-end">
+      <div>
+        <h1 class="text-4xl font-extrabold text-on-surface tracking-tight">ScopeGuard Dashboard</h1>
+        <p class="text-secondary font-medium mt-1">Real-time sprint health and scope creep intelligence for NovaTech Solutions.</p>
+      </div>
+      <div class="flex gap-3">
+        <button class="px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/5 rounded-lg transition-colors">Export Report</button>
+        <button class="px-5 py-2 text-sm font-semibold bg-white border border-outline-variant/30 rounded-lg shadow-sm flex items-center gap-2">
+          <span class="material-symbols-outlined text-sm">filter_list</span>All Teams
+        </button>
+      </div>
+    </section>
+
+    <!-- KPI Cards -->
+    <section class="grid grid-cols-3 gap-6">
+      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-sm flex flex-col justify-between h-40">
+        <div class="flex items-center justify-between">
+          <span class="text-secondary font-semibold text-sm uppercase tracking-wider">Active Sprints</span>
+          <div class="p-2 bg-primary/10 rounded-lg text-primary">
+            <span class="material-symbols-outlined">bolt</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-5xl font-black text-on-surface leading-none">3</div>
+          <div class="mt-1 text-xs font-medium text-emerald-600 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">trending_up</span>Sprint 14 — All Teams Active
+          </div>
+        </div>
+      </div>
+      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-sm flex flex-col justify-between h-40">
+        <div class="flex items-center justify-between">
+          <span class="text-secondary font-semibold text-sm uppercase tracking-wider">Sprints at Risk</span>
+          <div class="p-2 bg-amber-100 rounded-lg text-amber-600">
+            <span class="material-symbols-outlined">warning</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-5xl font-black text-on-surface leading-none">1</div>
+          <div class="mt-1 text-xs font-medium text-amber-600">Platform Team — 69% capacity overload</div>
+        </div>
+      </div>
+      <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-sm flex flex-col justify-between h-40 border-l-4 border-l-tertiary">
+        <div class="flex items-center justify-between">
+          <span class="text-secondary font-semibold text-sm uppercase tracking-wider">Critical Alerts</span>
+          <div class="p-2 bg-tertiary-container/10 rounded-lg text-tertiary">
+            <span class="material-symbols-outlined">error</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-5xl font-black text-tertiary leading-none">1</div>
+          <div class="mt-1 text-xs font-medium text-tertiary">Platform scope creep detected by AI</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sprint Cards -->
+    <section class="space-y-6">
+      <div class="flex items-center gap-4">
+        <h2 class="text-2xl font-bold text-on-surface">Active Sprints — Sprint 14</h2>
+        <div class="h-px flex-1 bg-outline-variant/20"></div>
+        <span class="text-sm font-bold text-white bg-on-surface px-3 py-1 rounded-full">Apr 1 – Apr 14, 2026</span>
+      </div>
+      <div class="grid grid-cols-3 gap-6">
+
+        <!-- Platform Team — CRITICAL -->
+        <div class="bg-white rounded-xl overflow-hidden border-2 border-tertiary/30 shadow-sm hover:shadow-md transition-all">
+          <div class="bg-tertiary/5 px-6 pt-6 pb-3 flex justify-between items-start">
+            <div>
+              <h3 class="text-lg font-bold text-on-surface">Platform Team</h3>
+              <p class="text-sm text-secondary">Backend Infra & Core Services</p>
+            </div>
+            <span class="bg-tertiary text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tighter whitespace-nowrap">CRITICAL</span>
+          </div>
+          <div class="px-6 pb-6 pt-3 space-y-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-secondary">Risk Score</span>
+                <span class="text-tertiary font-bold">95/100</span>
+              </div>
+              <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+                <div class="bg-tertiary h-full rounded-full" style="width: 95%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-secondary">Committed Points</span>
+              <span class="font-bold text-on-surface">42</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-secondary">Unplanned Points</span>
+              <span class="font-bold text-tertiary">+29</span>
+            </div>
+            <div class="bg-tertiary/5 p-3 rounded-lg border border-tertiary/20">
+              <p class="text-xs text-on-surface leading-relaxed">4 unplanned stories detected — 69% capacity overload. OAuth 2.0 sprint goal at risk.</p>
+            </div>
+            <button onclick="showScreen('alert')" class="w-full py-2.5 text-sm font-bold bg-tertiary text-white rounded-lg flex items-center justify-center gap-2 hover:bg-tertiary/90 transition-all">
+              <span class="material-symbols-outlined text-[18px]">notification_important</span>View Alert
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Team — LOW -->
+        <div class="bg-white rounded-xl overflow-hidden border border-outline-variant/20 shadow-sm hover:shadow-md transition-all">
+          <div class="px-6 pt-6 pb-3 flex justify-between items-start">
+            <div>
+              <h3 class="text-lg font-bold text-on-surface">Mobile Team</h3>
+              <p class="text-sm text-secondary">iOS & Android Experience</p>
+            </div>
+            <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tighter whitespace-nowrap">LOW</span>
+          </div>
+          <div class="px-6 pb-6 pt-3 space-y-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-secondary">Risk Score</span>
+                <span class="text-emerald-600 font-bold">10/100</span>
+              </div>
+              <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full" style="width: 10%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-secondary">Committed Points</span>
+              <span class="font-bold text-on-surface">35</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-secondary">Unplanned Points</span>
+              <span class="font-bold text-emerald-600">0</span>
+            </div>
+            <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+              <p class="text-xs text-on-surface leading-relaxed">No scope creep detected. Sprint on track for push notification delivery.</p>
+            </div>
+            <button class="w-full py-2.5 text-sm font-bold text-on-surface-variant border border-outline-variant/40 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container transition-all">
+              <span class="material-symbols-outlined text-[18px]">visibility</span>View Details
+            </button>
+          </div>
+        </div>
+
+        <!-- Data Team — LOW -->
+        <div class="bg-white rounded-xl overflow-hidden border border-outline-variant/20 shadow-sm hover:shadow-md transition-all">
+          <div class="px-6 pt-6 pb-3 flex justify-between items-start">
+            <div>
+              <h3 class="text-lg font-bold text-on-surface">Data Team</h3>
+              <p class="text-sm text-secondary">Analytics & ML Pipeline</p>
+            </div>
+            <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tighter whitespace-nowrap">LOW</span>
+          </div>
+          <div class="px-6 pb-6 pt-3 space-y-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-secondary">Risk Score</span>
+                <span class="text-emerald-600 font-bold">10/100</span>
+              </div>
+              <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full" style="width: 10%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-secondary">Committed Points</span>
+              <span class="font-bold text-on-surface">28</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-secondary">Unplanned Points</span>
+              <span class="font-bold text-emerald-600">0</span>
+            </div>
+            <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+              <p class="text-xs text-on-surface leading-relaxed">No scope creep detected. BigQuery migration pipeline on track.</p>
+            </div>
+            <button class="w-full py-2.5 text-sm font-bold text-on-surface-variant border border-outline-variant/40 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container transition-all">
+              <span class="material-symbols-outlined text-[18px]">visibility</span>View Details
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- AI Strategy Panel -->
+    <section class="grid grid-cols-3 gap-6">
+      <div class="col-span-2 bg-surface-container-low p-8 rounded-2xl">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-on-surface">Resource Allocation — Sprint 14</h3>
+          <span class="text-xs font-semibold text-secondary uppercase">Week Overview</span>
+        </div>
+        <div class="h-48 flex items-end gap-3 px-2">
+          <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-primary/20 rounded-t-lg" style="height: 60%"></div>
+            <span class="text-xs text-secondary">Mon</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-primary/40 rounded-t-lg" style="height: 75%"></div>
+            <span class="text-xs text-secondary">Tue</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-primary/60 rounded-t-lg" style="height: 85%"></div>
+            <span class="text-xs text-secondary">Wed</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-tertiary rounded-t-lg" style="height: 100%"></div>
+            <span class="text-xs text-tertiary font-bold">Thu ⚠</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-primary/40 rounded-t-lg" style="height: 70%"></div>
+            <span class="text-xs text-secondary">Fri</span>
+          </div>
+        </div>
+        <div class="mt-4 flex justify-between items-center pt-4 border-t border-outline-variant/10">
+          <p class="text-sm text-secondary font-medium">Over-capacity detected Thursday — Platform Backend Engineers</p>
+          <button class="text-primary text-sm font-bold">Optimize →</button>
+        </div>
+      </div>
+      <div class="bg-white p-8 rounded-2xl border border-outline-variant/20 flex flex-col shadow-sm">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined">psychology</span>
+          </div>
+          <h3 class="font-bold text-on-surface">AI Strategy</h3>
+        </div>
+        <div class="flex-1 space-y-4">
+          <div class="p-4 bg-surface rounded-xl border border-outline-variant/10">
+            <h4 class="text-xs font-bold text-secondary uppercase mb-2">Recommended Move</h4>
+            <p class="text-sm font-semibold text-on-surface">Immediately convene sprint review — 29 unplanned points threaten OAuth 2.0 delivery.</p>
+          </div>
+          <div class="p-4 bg-surface rounded-xl border border-outline-variant/10">
+            <h4 class="text-xs font-bold text-tertiary uppercase mb-2">Scope Warning</h4>
+            <p class="text-sm font-semibold text-on-surface">Telstra SSO story (13 pts) duplicates existing SSO work — escalate to CTO.</p>
+          </div>
+        </div>
+        <button onclick="showScreen('alert')" class="mt-6 w-full py-3 bg-tertiary text-white rounded-xl font-bold text-sm">View Critical Alert</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 2: ALERT DETAIL -->
+  <!-- ============================================================ -->
+  <div id="screen-alert" class="screen flex-col p-8 max-w-7xl w-full">
+
+    <div class="flex items-center gap-4 mb-8">
+      <button onclick="showScreen('dashboard')" class="p-2 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <div>
+        <div class="flex items-center gap-3 mb-1">
+          <span class="bg-tertiary text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">CRITICAL</span>
+          <h1 class="text-3xl font-extrabold tracking-tight text-on-surface">Sprint 14 — Platform Team Scope Creep</h1>
+        </div>
+        <p class="text-on-surface-variant text-sm">Detected by ScopeGuard AI · <span class="font-semibold text-on-surface">NovaTech Solutions · Customer Experience ART</span></p>
+      </div>
+      <div class="ml-auto flex gap-3">
+        <button class="px-4 py-2 text-sm font-semibold text-on-surface-variant border border-outline-variant/30 rounded-lg hover:bg-surface-container-low transition-colors">Export Report</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-6 mb-8">
+
+      <!-- Risk Overview -->
+      <div class="col-span-8 space-y-6">
+        <div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/10">
+          <h2 class="text-lg font-bold mb-6 text-on-surface">Risk Overview</h2>
+          <div class="grid grid-cols-4 gap-6">
+            <div class="space-y-1">
+              <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Risk Score</span>
+              <div class="text-4xl font-black text-tertiary">95<span class="text-sm font-medium text-on-surface-variant">/100</span></div>
+              <p class="text-xs text-on-surface-variant">Critical — Immediate action</p>
+            </div>
+            <div class="space-y-1">
+              <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Scope Creep</span>
+              <div class="text-lg font-bold text-tertiary flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">error</span>Detected
+              </div>
+              <p class="text-xs text-on-surface-variant">4 unplanned stories</p>
+            </div>
+            <div class="space-y-1">
+              <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Committed Pts</span>
+              <div class="text-lg font-bold text-on-surface">42 pts</div>
+              <p class="text-xs text-on-surface-variant">Original sprint plan</p>
+            </div>
+            <div class="space-y-1">
+              <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Unplanned Pts</span>
+              <div class="text-lg font-bold text-tertiary">+29 pts</div>
+              <p class="text-xs text-on-surface-variant">69% capacity overload</p>
+            </div>
+          </div>
+          <div class="mt-6 p-4 bg-surface rounded-lg border-l-4 border-tertiary">
+            <h3 class="text-sm font-bold text-on-surface mb-1">AI Summary</h3>
+            <p class="text-sm text-on-surface-variant leading-relaxed">Critical scope creep detected with 4 unplanned stories adding 29 story points to the original 42-point commitment, representing a 69% capacity overload. The sprint goal for OAuth 2.0 delivery is at high risk without immediate scope negotiation.</p>
+          </div>
+        </div>
+
+        <!-- Flagged Stories Table -->
+        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 overflow-hidden">
+          <div class="p-6 border-b border-surface-container">
+            <h2 class="text-lg font-bold text-on-surface">Flagged Stories</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-surface-container-low">
+                  <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Story Title</th>
+                  <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Added</th>
+                  <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Reason</th>
+                  <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Points</th>
+                  <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Severity</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-surface-container-low">
+                <tr class="hover:bg-surface-container transition-colors">
+                  <td class="px-6 py-4 text-sm font-semibold text-on-surface">Add SSO support for enterprise clients</td>
+                  <td class="px-6 py-4 text-sm text-on-surface-variant">Apr 5</td>
+                  <td class="px-6 py-4 text-sm text-on-surface-variant">Unplanned 8-pt story, was_in_original_plan: false</td>
+                  <td class="px-6 py-4 text-sm font-bold text-on-surface">8</td>
+                  <td class="px-6 py-4"><span class="bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold px-2 py-1 rounded-full">HIGH</span></td>
+                </tr>
+                <tr class="hover:bg-surface-container transition-colors">
+                  <td class="px-6 py-4 text-sm font-semibold text-on-surface">Integrate Google Analytics tracking</td>
+                  <td class="px-6 py-4 text-sm text-on-surface-variant">Apr 7</td>
+                  <td class="px-6 py-4 text-sm text-on-surface-variant">Unplanned story added mid-sprint, not in original plan</td>
+                  <td class="px-6 py-4 text-sm font-bold text-on-surface">3</td>
+                  <td class="px-6 py-4"><span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-1 rounded-full">MEDIUM</span></td>
+                </tr>
+                <tr class="hover:bg-surface-container transition-colors">
+                  <td class="px-6 py-4 text-sm font-semibold text-on-surface">Hotfix: resolve CORS error on staging</td>
+                  <td class="px-6 py-4 text-sm text-on-surface-variant">Apr 8</td>
+                  <td class="px-6 py-4 text-sm text-on-surface-variant">Unplanned bug fix, 5-pt story added mid-sprint</td>
+                  <td class="px-6 py-4 text-sm font-bold text-on-surface">5</td>
+                  <td class="px-6 py-4"><span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-1 rounded-full">MEDIUM</span></td>
+                </tr>
+                <tr class="hover:bg-surface-container transition-colors">
+                  <td class="px-6 py-4 text-sm font-semibold text-on-surface">Emergency: SSO integration for Telstra (CTO)</td>
+                  <td class="px-6 py-4 text-sm text-on-surface-variant">Apr 11</td>
+                  <td class="px-6 py-4 text-sm text-on-surface-variant">Critical 13-pt story, assigned by CTO, duplicates existing SSO</td>
+                  <td class="px-6 py-4 text-sm font-bold text-tertiary">13</td>
+                  <td class="px-6 py-4"><span class="bg-error-container text-on-error-container text-[10px] font-bold px-2 py-1 rounded-full">CRITICAL</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Recommended Action -->
+      <div class="col-span-4">
+        <div class="bg-tertiary-fixed/30 rounded-xl p-6 border border-tertiary-fixed sticky top-24">
+          <div class="flex items-center gap-2 mb-4 text-tertiary">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <h3 class="font-bold">AI Recommended Action</h3>
+          </div>
+          <p class="text-sm text-on-surface leading-relaxed mb-6">
+            Immediately escalate to Product Owner to negotiate removing or deferring <strong>29 unplanned story points</strong> (69% increase over committed capacity). Prioritise removal of duplicate SSO stories and deferring analytics integration to next sprint.
+          </p>
+          <div class="space-y-3">
+            <div class="bg-white/60 p-4 rounded-lg border border-white">
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-sm text-tertiary mt-0.5">meeting_room</span>
+                <div>
+                  <span class="text-sm font-bold text-on-surface block">Convene Sprint Review</span>
+                  <span class="text-xs text-on-surface-variant">With PO, Scrum Master & CTO</span>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white/60 p-4 rounded-lg border border-white">
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-sm text-tertiary mt-0.5">remove_circle</span>
+                <div>
+                  <span class="text-sm font-bold text-on-surface block">Descope Telstra SSO</span>
+                  <span class="text-xs text-on-surface-variant">Move 13-pt story to next sprint</span>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white/60 p-4 rounded-lg border border-white">
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-sm text-tertiary mt-0.5">schedule</span>
+                <div>
+                  <span class="text-sm font-bold text-on-surface block">Defer Analytics Tracking</span>
+                  <span class="text-xs text-on-surface-variant">3-pt story to Sprint 15 backlog</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button onclick="acknowledgeAlert()" id="acknowledge-btn" class="w-full mt-6 bg-tertiary text-white font-bold py-3 rounded-lg shadow-sm hover:bg-tertiary/90 transition-all active:scale-95">
+            Acknowledge Alert
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-white/80 backdrop-blur-md border border-surface-container rounded-xl py-4 px-6 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <span class="text-sm font-medium text-on-surface-variant">Assigned to: <span class="text-on-surface font-bold">Vaishali Bhardwaj (PM)</span></span>
+        <div class="h-4 w-px bg-surface-container"></div>
+        <span class="text-sm font-medium text-on-surface-variant">Status: <span class="text-tertiary font-bold" id="alert-status">Pending Review</span></span>
+      </div>
+      <button onclick="showScreen('dashboard')" class="px-6 py-2 text-sm font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg">
+        ← Back to Dashboard
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 3: TEAMS -->
+  <!-- ============================================================ -->
+  <div id="screen-teams" class="screen flex-col p-8 max-w-7xl w-full space-y-10">
+
+    <div class="flex justify-between items-end">
+      <div>
+        <h2 class="text-4xl font-extrabold text-on-surface tracking-tight">Engineering Teams</h2>
+        <p class="text-on-surface-variant text-lg mt-1">Monitor sprint health, risk velocity, and resource allocation in real-time.</p>
+      </div>
+      <button class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg">
+        <span class="material-symbols-outlined">add</span>Create New Team
+      </button>
+    </div>
+
+    <div class="grid grid-cols-4 gap-6">
+      <div class="bg-white rounded-xl p-6 flex flex-col border border-transparent shadow-sm hover:shadow-xl transition-all duration-300 group">
+        <div class="flex justify-between items-start mb-6">
+          <div class="w-12 h-12 bg-tertiary/10 text-tertiary rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined">layers</span>
+          </div>
+          <span class="px-3 py-1 bg-error-container text-on-error-container text-[10px] font-bold rounded-full uppercase">Critical</span>
+        </div>
+        <h3 class="text-xl font-bold text-on-surface mb-1">Platform Team</h3>
+        <p class="text-sm text-on-surface-variant mb-1">6 Active Members</p>
+        <p class="text-xs text-tertiary font-semibold mb-4">Risk Score: 95/100</p>
+        <div class="mt-auto">
+          <div class="flex items-end justify-between gap-1 mb-4 h-12">
+            <div class="w-full bg-tertiary/20 rounded-t-sm" style="height: 60%"></div>
+            <div class="w-full bg-tertiary/40 rounded-t-sm" style="height: 75%"></div>
+            <div class="w-full bg-tertiary/70 rounded-t-sm" style="height: 90%"></div>
+            <div class="w-full bg-tertiary rounded-t-sm" style="height: 100%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase mb-4">
+            <span>Risk Velocity</span><span class="text-tertiary">+69% Trend</span>
+          </div>
+          <button onclick="showScreen('alert')" class="w-full py-3 bg-tertiary text-white font-bold rounded-lg">View Alert</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-6 flex flex-col border border-transparent shadow-sm hover:shadow-xl transition-all duration-300 group">
+        <div class="flex justify-between items-start mb-6">
+          <div class="w-12 h-12 bg-blue-50 text-primary rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined">smartphone</span>
+          </div>
+          <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full uppercase">Healthy</span>
+        </div>
+        <h3 class="text-xl font-bold text-on-surface mb-1">Mobile Team</h3>
+        <p class="text-sm text-on-surface-variant mb-1">5 Active Members</p>
+        <p class="text-xs text-emerald-600 font-semibold mb-4">Risk Score: 10/100</p>
+        <div class="mt-auto">
+          <div class="flex items-end justify-between gap-1 mb-4 h-12">
+            <div class="w-full bg-emerald-100 rounded-t-sm" style="height: 20%"></div>
+            <div class="w-full bg-emerald-200 rounded-t-sm" style="height: 15%"></div>
+            <div class="w-full bg-emerald-100 rounded-t-sm" style="height: 10%"></div>
+            <div class="w-full bg-emerald-300 rounded-t-sm" style="height: 12%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase mb-4">
+            <span>Risk Velocity</span><span class="text-emerald-600">Stable</span>
+          </div>
+          <button class="w-full py-3 bg-surface-container-low text-on-surface font-bold rounded-lg group-hover:bg-primary group-hover:text-on-primary transition-all">Manage Team</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-6 flex flex-col border border-transparent shadow-sm hover:shadow-xl transition-all duration-300 group">
+        <div class="flex justify-between items-start mb-6">
+          <div class="w-12 h-12 bg-blue-50 text-primary rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined">database</span>
+          </div>
+          <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full uppercase">Healthy</span>
+        </div>
+        <h3 class="text-xl font-bold text-on-surface mb-1">Data Team</h3>
+        <p class="text-sm text-on-surface-variant mb-1">4 Active Members</p>
+        <p class="text-xs text-emerald-600 font-semibold mb-4">Risk Score: 10/100</p>
+        <div class="mt-auto">
+          <div class="flex items-end justify-between gap-1 mb-4 h-12">
+            <div class="w-full bg-emerald-100 rounded-t-sm" style="height: 15%"></div>
+            <div class="w-full bg-emerald-200 rounded-t-sm" style="height: 20%"></div>
+            <div class="w-full bg-emerald-100 rounded-t-sm" style="height: 10%"></div>
+            <div class="w-full bg-emerald-300 rounded-t-sm" style="height: 18%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase mb-4">
+            <span>Risk Velocity</span><span class="text-emerald-600">Stable</span>
+          </div>
+          <button class="w-full py-3 bg-surface-container-low text-on-surface font-bold rounded-lg group-hover:bg-primary group-hover:text-on-primary transition-all">Manage Team</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-6 flex flex-col border border-transparent shadow-sm hover:shadow-xl transition-all duration-300">
+        <div class="flex justify-between items-start mb-6">
+          <div class="w-12 h-12 bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined">dns</span>
+          </div>
+          <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full uppercase">Healthy</span>
+        </div>
+        <h3 class="text-xl font-bold text-on-surface mb-1">Infrastructure</h3>
+        <p class="text-sm text-on-surface-variant mb-1">8 Active Members</p>
+        <p class="text-xs text-emerald-600 font-semibold mb-4">Risk Score: 5/100</p>
+        <div class="mt-auto">
+          <div class="flex items-end justify-between gap-1 mb-4 h-12">
+            <div class="w-full bg-slate-200 rounded-t-sm" style="height: 10%"></div>
+            <div class="w-full bg-slate-200 rounded-t-sm" style="height: 8%"></div>
+            <div class="w-full bg-slate-200 rounded-t-sm" style="height: 12%"></div>
+            <div class="w-full bg-slate-300 rounded-t-sm" style="height: 10%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase mb-4">
+            <span>Risk Velocity</span><span>Stable</span>
+          </div>
+          <button class="w-full py-3 bg-surface-container-low text-on-surface font-bold rounded-lg">Manage Team</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Insight -->
+    <div class="bg-white p-10 rounded-3xl shadow-lg border border-outline-variant/10">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold mb-6">
+        <span class="material-symbols-outlined text-sm">auto_awesome</span>AI PREDICTIVE INSIGHT
+      </div>
+      <h2 class="text-3xl font-black text-on-surface mb-4">Immediate Action Required — Platform Team</h2>
+      <p class="text-on-surface-variant text-lg mb-8 leading-relaxed">
+        ScopeGuard AI has detected <span class="font-bold text-tertiary">CRITICAL scope creep</span> in the Platform Team sprint. 4 unplanned stories have added 29 story points (69% over committed capacity). Immediate Product Owner intervention is required to protect the OAuth 2.0 sprint goal.
+      </p>
+      <div class="flex gap-4">
+        <button onclick="showScreen('alert')" class="bg-tertiary text-white px-8 py-4 rounded-xl font-bold shadow-lg">View Full Alert</button>
+        <button onclick="showScreen('dashboard')" class="bg-surface text-on-surface-variant px-8 py-4 rounded-xl font-bold border border-outline-variant/30">Back to Dashboard</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 4: SETTINGS -->
+  <!-- ============================================================ -->
+  <div id="screen-settings" class="screen flex-col p-8 max-w-6xl w-full space-y-8">
+
+    <div>
+      <h2 class="text-5xl font-extrabold text-on-surface tracking-tight mb-2">Settings</h2>
+      <p class="text-on-surface-variant text-lg">Configure your orchestration workspace and fine-tune ScopeGuard's AI intelligence engine.</p>
+    </div>
+
+    <div class="grid grid-cols-12 gap-8">
+      <div class="col-span-8 space-y-8">
+
+        <!-- Profile -->
+        <section class="bg-surface-container-lowest rounded-xl p-8 shadow-sm">
+          <h3 class="text-2xl font-bold mb-8">Profile</h3>
+          <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Full Name</label>
+              <input class="w-full bg-surface-container-low border-transparent rounded-lg py-3 px-4 text-on-surface" type="text" value="Vaishali Bhardwaj"/>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Email Address</label>
+              <input class="w-full bg-surface-container-low border-transparent rounded-lg py-3 px-4 text-on-surface" type="email" value="vaishali@novatech.solutions"/>
+            </div>
+            <div class="space-y-2 col-span-2">
+              <label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Role</label>
+              <input class="w-full bg-surface-container-low border-transparent rounded-lg py-3 px-4 text-on-surface" type="text" value="AI Product Manager — SAFe PO/PM Certified"/>
+            </div>
+          </div>
+        </section>
+
+        <!-- AI Sensitivity -->
+        <section class="bg-surface-container-lowest rounded-xl p-8 shadow-sm">
+          <div class="flex justify-between items-start mb-8">
+            <div>
+              <h3 class="text-2xl font-bold">AI Sensitivity</h3>
+              <p class="text-on-surface-variant text-sm">Control the threshold for automated scope creep detection.</p>
+            </div>
+            <span class="bg-secondary-container text-on-secondary-container px-4 py-1 rounded-full text-xs font-bold">EXPERIMENTAL</span>
+          </div>
+          <div class="space-y-6">
+            <input class="w-full h-2 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="75"/>
+            <div class="flex justify-between text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+              <span>Passive</span><span class="text-primary">Optimized (75%)</span><span>Aggressive</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-surface-container-low border-l-4 border-primary">
+                <p class="text-xs font-bold text-primary uppercase mb-1">Impact</p>
+                <p class="text-sm text-on-surface">Proactively flags unplanned stories and capacity overloads before they derail sprints.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-surface-container-low">
+                <p class="text-xs font-bold text-on-surface-variant uppercase mb-1">Powered By</p>
+                <p class="text-sm text-on-surface">Claude AI (Anthropic) via n8n automation pipeline with Supabase data layer.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="col-span-4 space-y-8">
+
+        <!-- Organisation -->
+        <section class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/10">
+          <h3 class="text-xl font-bold mb-6">Organisation</h3>
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white">
+              <span class="material-symbols-outlined">domain</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-on-surface">NovaTech Solutions</h4>
+              <p class="text-xs text-on-surface-variant">SAFe Enterprise Workspace</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <button class="w-full py-3 px-4 bg-surface-container-lowest text-on-surface font-semibold text-sm rounded-lg border border-outline-variant/20 flex items-center justify-between hover:bg-white transition-colors">
+              <span>Manage Teams</span><span class="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+            <button class="w-full py-3 px-4 bg-surface-container-lowest text-on-surface font-semibold text-sm rounded-lg border border-outline-variant/20 flex items-center justify-between hover:bg-white transition-colors">
+              <span>Jira Integration (Phase 2)</span><span class="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+            <button class="w-full py-3 px-4 bg-surface-container-lowest text-on-surface font-semibold text-sm rounded-lg border border-outline-variant/20 flex items-center justify-between hover:bg-white transition-colors">
+              <span>Slack Notifications (Phase 2)</span><span class="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Notifications -->
+        <section class="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
+          <h3 class="text-xl font-bold mb-6">Notifications</h3>
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-bold text-sm text-on-surface">Email Alerts</p>
+                <p class="text-xs text-on-surface-variant">Daily scope creep summary</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input checked class="sr-only peer" type="checkbox"/>
+                <div class="w-11 h-6 bg-surface-container-high rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-bold text-sm text-on-surface">Slack Integration</p>
+                <p class="text-xs text-on-surface-variant">Real-time channel alerts (Phase 2)</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input class="sr-only peer" type="checkbox"/>
+                <div class="w-11 h-6 bg-surface-container-high rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <div class="pt-2">
+          <button class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-lg">Save Changes</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+<script>
+  function showScreen(name) {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    // Show target
+    document.getElementById('screen-' + name).classList.add('active');
+
+    // Update nav styles
+    const navIds = ['dashboard', 'alert', 'teams', 'settings'];
+    navIds.forEach(id => {
+      const el = document.getElementById('nav-' + id);
+      if (el) {
+        el.className = 'nav-link flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200 ' +
+          (id === name
+            ? 'text-primary bg-surface-container-lowest shadow-sm'
+            : 'text-secondary hover:bg-surface-container-highest/50');
+      }
+    });
+
+    // Update page title
+    const titles = {
+      dashboard: 'ScopeGuard Dashboard',
+      alert: 'Alert Detail — Platform Team',
+      teams: 'Engineering Teams',
+      settings: 'Settings'
+    };
+    document.getElementById('page-title').textContent = titles[name] || 'ScopeGuard';
+  }
+
+  function acknowledgeAlert() {
+    const btn = document.getElementById('acknowledge-btn');
+    const status = document.getElementById('alert-status');
+    btn.textContent = '✓ Alert Acknowledged';
+    btn.className = 'w-full mt-6 bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-sm';
+    btn.disabled = true;
+    status.textContent = 'Acknowledged';
+    status.className = 'text-emerald-600 font-bold';
+  }
+
+  // Init
+  showScreen('dashboard');
+</script>
+</body>
+</html>
