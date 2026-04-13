@@ -111,6 +111,9 @@
     <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200" onclick="showScreen('teams')" id="nav-teams">
       <span class="material-symbols-outlined">group</span>Teams
     </a>
+    <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200" onclick="showScreen('agent')" id="nav-agent">
+      <span class="material-symbols-outlined">smart_toy</span>AI Agent
+    </a>
     <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200" onclick="showScreen('settings')" id="nav-settings">
       <span class="material-symbols-outlined">settings</span>Settings
     </a>
@@ -160,7 +163,6 @@
         <p class="text-secondary font-medium mt-1">Real-time sprint health and scope creep intelligence for NovaTech Solutions.</p>
       </div>
       <div class="flex gap-3">
-        <button class="px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/5 rounded-lg transition-colors">Export Report</button>
         <button class="px-5 py-2 text-sm font-semibold bg-white border border-outline-variant/30 rounded-lg shadow-sm flex items-center gap-2">
           <span class="material-symbols-outlined text-sm">filter_list</span>All Teams
         </button>
@@ -231,10 +233,10 @@
             <div class="space-y-1">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-secondary">Risk Score</span>
-                <span class="text-tertiary font-bold">95/100</span>
+                <span class="text-tertiary font-bold" data-risk-score>95/100</span>
               </div>
               <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-                <div class="bg-tertiary h-full rounded-full" style="width: 95%"></div>
+                <div class="bg-tertiary h-full rounded-full" data-risk-bar style="width: 95%"></div>
               </div>
             </div>
             <div class="flex justify-between text-sm">
@@ -330,47 +332,15 @@
     </section>
 
     <!-- AI Strategy Panel -->
-    <section class="grid grid-cols-3 gap-6">
-      <div class="col-span-2 bg-surface-container-low p-8 rounded-2xl">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-on-surface">Resource Allocation — Sprint 14</h3>
-          <span class="text-xs font-semibold text-secondary uppercase">Week Overview</span>
-        </div>
-        <div class="h-48 flex items-end gap-3 px-2">
-          <div class="flex-1 flex flex-col items-center gap-2">
-            <div class="w-full bg-primary/20 rounded-t-lg" style="height: 60%"></div>
-            <span class="text-xs text-secondary">Mon</span>
-          </div>
-          <div class="flex-1 flex flex-col items-center gap-2">
-            <div class="w-full bg-primary/40 rounded-t-lg" style="height: 75%"></div>
-            <span class="text-xs text-secondary">Tue</span>
-          </div>
-          <div class="flex-1 flex flex-col items-center gap-2">
-            <div class="w-full bg-primary/60 rounded-t-lg" style="height: 85%"></div>
-            <span class="text-xs text-secondary">Wed</span>
-          </div>
-          <div class="flex-1 flex flex-col items-center gap-2">
-            <div class="w-full bg-tertiary rounded-t-lg" style="height: 100%"></div>
-            <span class="text-xs text-tertiary font-bold">Thu ⚠</span>
-          </div>
-          <div class="flex-1 flex flex-col items-center gap-2">
-            <div class="w-full bg-primary/40 rounded-t-lg" style="height: 70%"></div>
-            <span class="text-xs text-secondary">Fri</span>
-          </div>
-        </div>
-        <div class="mt-4 flex justify-between items-center pt-4 border-t border-outline-variant/10">
-          <p class="text-sm text-secondary font-medium">Over-capacity detected Thursday — Platform Backend Engineers</p>
-          <button class="text-primary text-sm font-bold">Optimize →</button>
-        </div>
-      </div>
+    <section class="grid grid-cols-1 gap-6">
       <div class="bg-white p-8 rounded-2xl border border-outline-variant/20 flex flex-col shadow-sm">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-primary">
             <span class="material-symbols-outlined">psychology</span>
           </div>
-          <h3 class="font-bold text-on-surface">AI Strategy</h3>
+          <h3 class="font-bold text-on-surface text-xl">AI Strategy — Sprint 14</h3>
         </div>
-        <div class="flex-1 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
           <div class="p-4 bg-surface rounded-xl border border-outline-variant/10">
             <h4 class="text-xs font-bold text-secondary uppercase mb-2">Recommended Move</h4>
             <p class="text-sm font-semibold text-on-surface">Immediately convene sprint review — 29 unplanned points threaten OAuth 2.0 delivery.</p>
@@ -380,7 +350,12 @@
             <p class="text-sm font-semibold text-on-surface">Telstra SSO story (13 pts) duplicates existing SSO work — escalate to CTO.</p>
           </div>
         </div>
-        <button onclick="showScreen('alert')" class="mt-6 w-full py-3 bg-tertiary text-white rounded-xl font-bold text-sm">View Critical Alert</button>
+        <div class="mt-6 flex gap-4">
+          <button onclick="showScreen('alert')" class="px-6 py-3 bg-tertiary text-white rounded-xl font-bold text-sm">View Critical Alert</button>
+          <button onclick="showScreen('agent')" class="px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">smart_toy</span>Ask AI Agent
+          </button>
+        </div>
       </div>
     </section>
 
@@ -402,9 +377,7 @@
         </div>
         <p class="text-on-surface-variant text-sm">Detected by ScopeGuard AI · <span class="font-semibold text-on-surface">NovaTech Solutions · Customer Experience ART</span></p>
       </div>
-      <div class="ml-auto flex gap-3">
-        <button class="px-4 py-2 text-sm font-semibold text-on-surface-variant border border-outline-variant/30 rounded-lg hover:bg-surface-container-low transition-colors">Export Report</button>
-      </div>
+
     </div>
 
     <div class="grid grid-cols-12 gap-6 mb-8">
@@ -439,7 +412,7 @@
           </div>
           <div class="mt-6 p-4 bg-surface rounded-lg border-l-4 border-tertiary">
             <h3 class="text-sm font-bold text-on-surface mb-1">AI Summary</h3>
-            <p class="text-sm text-on-surface-variant leading-relaxed">Critical scope creep detected with 4 unplanned stories adding 29 story points to the original 42-point commitment, representing a 69% capacity overload. The sprint goal for OAuth 2.0 delivery is at high risk without immediate scope negotiation.</p>
+            <p class="text-sm text-on-surface-variant leading-relaxed" id="ai-summary">Critical scope creep detected with 4 unplanned stories adding 29 story points to the original 42-point commitment, representing a 69% capacity overload. The sprint goal for OAuth 2.0 delivery is at high risk without immediate scope negotiation.</p>
           </div>
         </div>
 
@@ -501,7 +474,7 @@
             <span class="material-symbols-outlined">auto_awesome</span>
             <h3 class="font-bold">AI Recommended Action</h3>
           </div>
-          <p class="text-sm text-on-surface leading-relaxed mb-6">
+          <p class="text-sm text-on-surface leading-relaxed mb-6" id="recommended-action">
             Immediately escalate to Product Owner to negotiate removing or deferring <strong>29 unplanned story points</strong> (69% increase over committed capacity). Prioritise removal of duplicate SSO stories and deferring analytics integration to next sprint.
           </p>
           <div class="space-y-3">
@@ -536,6 +509,7 @@
           <button onclick="acknowledgeAlert()" id="acknowledge-btn" class="w-full mt-6 bg-tertiary text-white font-bold py-3 rounded-lg shadow-sm hover:bg-tertiary/90 transition-all active:scale-95">
             Acknowledge Alert
           </button>
+          <p id="acknowledge-feedback" class="text-xs text-center mt-2 text-on-surface-variant hidden"></p>
         </div>
       </div>
     </div>
@@ -685,6 +659,73 @@
   </div>
 
   <!-- ============================================================ -->
+  <!-- SCREEN 5: AI AGENT -->
+  <!-- ============================================================ -->
+  <div id="screen-agent" class="screen flex-col p-8 max-w-5xl w-full">
+
+    <div class="mb-8">
+      <h1 class="text-4xl font-extrabold text-on-surface tracking-tight">ScopeGuard AI Agent</h1>
+      <p class="text-secondary font-medium mt-1">Ask questions about your sprints. Powered by Claude AI with live Supabase data and historical retrospective patterns.</p>
+    </div>
+
+    <!-- Suggested Questions -->
+    <div class="flex flex-wrap gap-3 mb-6">
+      <button onclick="askQuestion('Is my sprint at risk?')" class="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 rounded-full text-sm font-semibold text-on-surface hover:bg-primary/5 hover:border-primary/30 transition-all">
+        Is my sprint at risk?
+      </button>
+      <button onclick="askQuestion('Which stories are causing scope creep?')" class="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 rounded-full text-sm font-semibold text-on-surface hover:bg-primary/5 hover:border-primary/30 transition-all">
+        Which stories are causing scope creep?
+      </button>
+      <button onclick="askQuestion('Have we seen this pattern before?')" class="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 rounded-full text-sm font-semibold text-on-surface hover:bg-primary/5 hover:border-primary/30 transition-all">
+        Have we seen this pattern before?
+      </button>
+      <button onclick="askQuestion('What should I do right now to protect the sprint goal?')" class="px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 rounded-full text-sm font-semibold text-on-surface hover:bg-primary/5 hover:border-primary/30 transition-all">
+        What should I do right now?
+      </button>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm flex flex-col" style="height: 520px;">
+
+      <!-- Messages Area -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+        <!-- Welcome message -->
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0">
+            <span class="material-symbols-outlined text-sm">smart_toy</span>
+          </div>
+          <div class="bg-surface-container-low rounded-2xl rounded-tl-sm px-5 py-4 max-w-2xl">
+            <p class="text-sm text-on-surface font-medium mb-1">ScopeGuard AI</p>
+            <p class="text-sm text-on-surface-variant leading-relaxed">Hello Vaishali 👋 I am your ScopeGuard AI Agent. I have access to live sprint data from Supabase and historical retrospective patterns from previous sprints. Ask me anything about your current sprint health.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="border-t border-outline-variant/20 p-4">
+        <div class="flex items-center gap-3">
+          <input
+            id="chat-input"
+            type="text"
+            placeholder="Ask about your sprint health..."
+            class="flex-1 bg-surface-container-low border-none ring-1 ring-outline-variant/30 rounded-full py-3 px-5 text-sm focus:ring-primary focus:ring-2 transition-all"
+            onkeypress="if(event.key==='Enter') sendMessage()"
+          />
+          <button
+            onclick="sendMessage()"
+            id="send-btn"
+            class="w-11 h-11 bg-primary rounded-full flex items-center justify-center text-white hover:bg-primary/90 transition-all active:scale-95 flex-shrink-0"
+          >
+            <span class="material-symbols-outlined text-sm">send</span>
+          </button>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-2 px-2">Connected to live Supabase data · Claude AI · Historical RAG patterns</p>
+      </div>
+    </div>
+
+  </div>
+
+    <!-- ============================================================ -->
   <!-- SCREEN 4: SETTINGS -->
   <!-- ============================================================ -->
   <div id="screen-settings" class="screen flex-col p-8 max-w-6xl w-full space-y-8">
@@ -764,11 +805,9 @@
               <span>Manage Teams</span><span class="material-symbols-outlined text-sm">chevron_right</span>
             </button>
             <button class="w-full py-3 px-4 bg-surface-container-lowest text-on-surface font-semibold text-sm rounded-lg border border-outline-variant/20 flex items-center justify-between hover:bg-white transition-colors">
-              <span>Jira Integration (Phase 2)</span><span class="material-symbols-outlined text-sm">chevron_right</span>
+              <span>Jira Integration ✓ Live</span><span class="material-symbols-outlined text-sm">chevron_right</span>
             </button>
-            <button class="w-full py-3 px-4 bg-surface-container-lowest text-on-surface font-semibold text-sm rounded-lg border border-outline-variant/20 flex items-center justify-between hover:bg-white transition-colors">
-              <span>Slack Notifications (Phase 2)</span><span class="material-symbols-outlined text-sm">chevron_right</span>
-            </button>
+
           </div>
         </section>
 
@@ -799,9 +838,7 @@
           </div>
         </section>
 
-        <div class="pt-2">
-          <button class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-lg">Save Changes</button>
-        </div>
+
 
       </div>
     </div>
@@ -819,7 +856,7 @@
     document.getElementById('screen-' + name).classList.add('active');
 
     // Update nav styles
-    const navIds = ['dashboard', 'alert', 'teams', 'settings'];
+    const navIds = ['dashboard', 'alert', 'teams', 'agent', 'settings'];
     navIds.forEach(id => {
       const el = document.getElementById('nav-' + id);
       if (el) {
@@ -835,23 +872,246 @@
       dashboard: 'ScopeGuard Dashboard',
       alert: 'Alert Detail — Platform Team',
       teams: 'Engineering Teams',
+      agent: 'AI Agent',
       settings: 'Settings'
     };
     document.getElementById('page-title').textContent = titles[name] || 'ScopeGuard';
   }
 
-  function acknowledgeAlert() {
+  const SUPABASE_URL = 'https://hifduatxqzifbalssilf.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_X2YDhhNBq3bpRPaKYTW-LQ_2t1QQrnz';
+  const ALERT_ID = '54f81bf7-c51b-4e45-9bff-42ee78f89e1b';
+  let LIVE_ALERT_ID = ALERT_ID; // will be updated by loadLiveData
+
+  async function acknowledgeAlert() {
     const btn = document.getElementById('acknowledge-btn');
     const status = document.getElementById('alert-status');
-    btn.textContent = '✓ Alert Acknowledged';
-    btn.className = 'w-full mt-6 bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-sm';
+    const feedback = document.getElementById('acknowledge-feedback');
+
+    btn.textContent = 'Acknowledging...';
     btn.disabled = true;
-    status.textContent = 'Acknowledged';
-    status.className = 'text-emerald-600 font-bold';
+
+    try {
+      const response = await fetch(
+        SUPABASE_URL + '/rest/v1/alerts?id=eq.' + LIVE_ALERT_ID,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify({ is_acknowledged: true })
+        }
+      );
+
+      if (response.ok || response.status === 204) {
+        btn.textContent = '✓ Alert Acknowledged';
+        btn.className = 'w-full mt-6 bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-sm';
+        status.textContent = 'Acknowledged';
+        status.className = 'text-emerald-600 font-bold';
+        feedback.textContent = '✓ Updated in Supabase database';
+        feedback.className = 'text-xs text-center mt-2 text-emerald-600';
+        feedback.classList.remove('hidden');
+      } else {
+        throw new Error('Failed');
+      }
+    } catch (err) {
+      btn.textContent = 'Acknowledge Alert';
+      btn.disabled = false;
+      feedback.textContent = 'Update failed. Please try again.';
+      feedback.className = 'text-xs text-center mt-2 text-tertiary';
+      feedback.classList.remove('hidden');
+    }
+  }
+
+
+  const WEBHOOK_URL = 'https://vbhardwaj.app.n8n.cloud/webhook/11cc92c1-8082-425a-b550-8ca8b53027a7';
+
+  function askQuestion(question) {
+    document.getElementById('chat-input').value = question;
+    sendMessage();
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const question = input.value.trim();
+    if (!question) return;
+
+    const sendBtn = document.getElementById('send-btn');
+    sendBtn.disabled = true;
+    input.value = '';
+
+    // Add user message
+    appendMessage('user', question);
+
+    // Add loading indicator
+    const loadingId = 'loading-' + Date.now();
+    appendLoading(loadingId);
+
+    try {
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question })
+      });
+
+      const data = await response.json();
+      removeLoading(loadingId);
+
+      const answer = data.answer || 'Sorry, I could not get a response. Please try again.';
+      appendMessage('agent', answer);
+    } catch (err) {
+      removeLoading(loadingId);
+      appendMessage('agent', 'Connection error. Please check your network and try again.');
+    }
+
+    sendBtn.disabled = false;
+    scrollToBottom();
+  }
+
+  function appendMessage(role, text) {
+    const container = document.getElementById('chat-messages');
+    const isUser = role === 'user';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = isUser
+      ? 'flex items-start gap-3 justify-end'
+      : 'flex items-start gap-3';
+
+    if (!isUser) {
+      const avatar = document.createElement('div');
+      avatar.className = 'w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0';
+      avatar.innerHTML = '<span class="material-symbols-outlined text-sm">smart_toy</span>';
+      wrapper.appendChild(avatar);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = isUser
+      ? 'bg-primary text-white rounded-2xl rounded-tr-sm px-5 py-3 max-w-lg text-sm leading-relaxed'
+      : 'bg-surface-container-low rounded-2xl rounded-tl-sm px-5 py-4 max-w-2xl';
+
+    if (!isUser) {
+      const name = document.createElement('p');
+      name.className = 'text-sm text-on-surface font-medium mb-1';
+      name.textContent = 'ScopeGuard AI';
+      bubble.appendChild(name);
+    }
+
+    const msg = document.createElement('p');
+    msg.className = isUser ? 'text-sm' : 'text-sm text-on-surface-variant leading-relaxed whitespace-pre-wrap';
+    // Clean markdown for display
+    msg.textContent = text.replace(/#{1,3} /g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/---/g, '').trim();
+    bubble.appendChild(msg);
+
+    wrapper.appendChild(bubble);
+    container.appendChild(wrapper);
+    scrollToBottom();
+  }
+
+  function appendLoading(id) {
+    const container = document.getElementById('chat-messages');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-start gap-3';
+    wrapper.id = id;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0';
+    avatar.innerHTML = '<span class="material-symbols-outlined text-sm">smart_toy</span>';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bg-surface-container-low rounded-2xl rounded-tl-sm px-5 py-4';
+    bubble.innerHTML = '<div class="flex gap-1 items-center h-5"><div class="w-2 h-2 bg-secondary rounded-full animate-bounce" style="animation-delay:0ms"></div><div class="w-2 h-2 bg-secondary rounded-full animate-bounce" style="animation-delay:150ms"></div><div class="w-2 h-2 bg-secondary rounded-full animate-bounce" style="animation-delay:300ms"></div></div>';
+
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(bubble);
+    container.appendChild(wrapper);
+    scrollToBottom();
+  }
+
+  function removeLoading(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function scrollToBottom() {
+    const container = document.getElementById('chat-messages');
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // Live Dashboard Data
+  async function loadLiveData() {
+    try {
+      const res = await fetch(
+        'https://hifduatxqzifbalssilf.supabase.co/rest/v1/alerts?select=*&order=created_at.desc&limit=1',
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY
+          }
+        }
+      );
+      const data = await res.json();
+      const alert = data[0];
+      if (!alert) return;
+      LIVE_ALERT_ID = alert.id;
+
+      const riskScore = alert.risk_score || 95;
+      const severity = (alert.severity || 'critical').toUpperCase();
+      const analysis = alert.claude_analysis || '';
+      const recommendation = alert.recommended_action || '';
+      const acknowledged = alert.is_acknowledged || false;
+
+      // Update risk score bars
+      document.querySelectorAll('[data-risk-score]').forEach(el => {
+        el.textContent = riskScore + '/100';
+      });
+      document.querySelectorAll('[data-risk-bar]').forEach(el => {
+        el.style.width = riskScore + '%';
+      });
+
+      // Update AI summary on alert page
+      const aiSummary = document.getElementById('ai-summary');
+      if (aiSummary && analysis) aiSummary.textContent = analysis;
+
+      // Update recommended action
+      const recAction = document.getElementById('recommended-action');
+      if (recAction && recommendation) recAction.textContent = recommendation;
+
+      // Update AI strategy panel
+      const strategyPanel = document.getElementById('ai-strategy-text');
+      if (strategyPanel && recommendation) strategyPanel.textContent = recommendation;
+
+      // Update acknowledge button if already acknowledged
+      if (acknowledged) {
+        const btn = document.getElementById('acknowledge-btn');
+        const status = document.getElementById('alert-status');
+        if (btn) {
+          btn.textContent = '✓ Alert Acknowledged';
+          btn.className = 'w-full mt-6 bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-sm';
+          btn.disabled = true;
+        }
+        if (status) {
+          status.textContent = 'Acknowledged';
+          status.className = 'text-emerald-600 font-bold';
+        }
+      }
+
+      // Update data source badge
+      document.querySelectorAll('[data-source-badge]').forEach(el => {
+        el.textContent = 'via ' + (alert.data_source || 'jira').toUpperCase();
+      });
+
+    } catch (err) {
+      console.log('Live data fetch failed, showing cached data:', err);
+    }
   }
 
   // Init
   showScreen('dashboard');
+  loadLiveData();
+  setInterval(loadLiveData, 30000);
 </script>
 </body>
 </html>
